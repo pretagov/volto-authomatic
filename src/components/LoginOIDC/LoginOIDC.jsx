@@ -48,7 +48,7 @@ function LoginOIDC({ intl }) {
 
   useEffect(() => {
     if (token) {
-      history.push('/');
+      // history.push('/');
       if (toast.isActive('loginFailed')) {
         toast.dismiss('loginFailed');
       }
@@ -57,7 +57,7 @@ function LoginOIDC({ intl }) {
 
   useEffect(() => {
     if (error) {
-      history.push('/login');
+      // history.push('/login');
       if (!toast.isActive('loginFailed')) {
         toast.error(<Toast error title={intl.formatMessage(messages.oAuthLoginFailed)} content={intl.formatMessage(messages.oAuthLoginFailedContent)} />, { autoClose: false, toastId: 'loginFailed' });
       }
@@ -70,6 +70,13 @@ function LoginOIDC({ intl }) {
         <Dimmer active={isLoading}>
           <Loader size={'huge'}>{intl.formatMessage(messages.authenticating)}</Loader>
         </Dimmer>
+        {error ? (
+          <>
+            <h1>An error has occured during login</h1>
+            <p>Please report the following error to your system administrator:</p>
+            <pre>{JSON.stringify(error, null, 4)}</pre>
+          </>
+        ) : null}
       </Container>
     </div>
   );
