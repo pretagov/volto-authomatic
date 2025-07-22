@@ -1,6 +1,9 @@
 /**
  * LoginOIDC container.
  * @module components/LoginOIDC/LoginOIDC
+ * 
+ * Commented out redirects to `/` on login
+ * Added check for previous query to prevent double-login
  */
 import React, { useEffect } from 'react';
 import { oidcLogin } from '../../actions';
@@ -10,6 +13,8 @@ import { Toast } from '@plone/volto/components';
 import { defineMessages, injectIntl } from 'react-intl';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
+
+import { usePrevious } from '@plone/volto/helpers';
 
 const messages = defineMessages({
   oAuthLoginFailed: {
@@ -41,10 +46,13 @@ function LoginOIDC({ intl }) {
   const isLoading = userSession.login.loading;
   const error = userSession.login.error;
   const token = userSession.token;
+  const previousQuery = usePrevious(query);
 
   useEffect(() => {
-    dispatch(oidcLogin(provider, query, session));
-  }, [dispatch, provider, query, session]);
+    if (previousQuery !== query) {
+      dispatch(oidcLogin(provider, query, session));
+    }
+  }, [dispatch, provider, query, session, previousQuery]);
 
   useEffect(() => {
     if (token) {
