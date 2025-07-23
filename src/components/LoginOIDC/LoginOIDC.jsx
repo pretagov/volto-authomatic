@@ -1,9 +1,9 @@
 /**
  * LoginOIDC container.
  * @module components/LoginOIDC/LoginOIDC
- * 
+ *
  * Commented out redirects to `/` on login
- * Added check for previous query to prevent double-login
+ * Added check for login progress to prevent multiple requests being fired
  */
 import React, { useEffect } from 'react';
 import { oidcLogin } from '../../actions';
@@ -12,9 +12,7 @@ import { toast } from 'react-toastify';
 import { Toast } from '@plone/volto/components';
 import { defineMessages, injectIntl } from 'react-intl';
 import { useParams, useLocation, useHistory } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
-
-import { usePrevious } from '@plone/volto/helpers';
+import { shallowEqual, useSelector, useDispatch } from 'react-redux';
 
 const messages = defineMessages({
   oAuthLoginFailed: {
@@ -42,17 +40,16 @@ function LoginOIDC({ intl }) {
   const history = useHistory();
   const dispatch = useDispatch();
   const session = useSelector((state) => state.oidcRedirect.session);
-  const userSession = useSelector((state) => state.userSession);
-  const isLoading = userSession.login.loading;
-  const error = userSession.login.error;
-  const token = userSession.token;
-  const previousQuery = usePrevious(query);
+  const isLoading = useSelector((state) => state.userSession.login.loading);
+  const hasLoaded = useSelector((state) => state.userSession.login.loaded || !!state.userSession.login.error);
+  const error = useSelector((state) => state.userSession.login.error, shallowEqual);
+  const token = useSelector((state) => state.userSession.token);
 
   useEffect(() => {
-    if (previousQuery !== query) {
+    if (!isLoading && !hasLoaded) {
       dispatch(oidcLogin(provider, query, session));
     }
-  }, [dispatch, provider, query, session, previousQuery]);
+  }, [dispatch, provider, query, session, isLoading, hasLoaded]);
 
   useEffect(() => {
     if (token) {
